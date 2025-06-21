@@ -1,17 +1,16 @@
 from telethon import TelegramClient, events
 import requests
 import asyncio
+from config import OR_KEY  # Токен берётся из config.py
 
-# Telegram API данные
+# Telegram API ID и HASH
 api_id = 94575
 api_hash = 'a3406de8d171bb422bb6ddf3bbd800e2'
 client = TelegramClient('anon', api_id, api_hash)
 
-# OpenRouter API
-OR_KEY = "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"
+# Модель для OpenRouter
 MODEL = "deepseek/deepseek-chat-v3-0324:free"
 
-# Получить ответ от ИИ
 def ask_or(prompt):
     try:
         res = requests.post(
@@ -33,7 +32,6 @@ def ask_or(prompt):
     except Exception as e:
         return f"❌ Ошибка запроса: {e}"
 
-# Обработчик сообщений
 @client.on(events.NewMessage)
 async def handler(event):
     if not event.raw_text.startswith("/gpt"):
@@ -46,10 +44,7 @@ async def handler(event):
         await event.respond("⚠️ Пустой запрос.")
         return
 
-    # Сообщение-заглушка
     msg = await event.respond("⌛ Печатает")
-
-    # Анимация ожидания (параллельно с запросом)
     animating = True
 
     async def animate():
@@ -61,8 +56,6 @@ async def handler(event):
             await asyncio.sleep(0.7)
 
     task = asyncio.create_task(animate())
-
-    # Получение ответа
     reply = ask_or(prompt)
     animating = False
     await task
